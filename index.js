@@ -6,6 +6,35 @@ const planetasContador = document.getElementById('planetas');
 const navesContador = document.getElementById('naves');
 
 preencherContadores();
+preencherTabela();
+
+google.charts.load('current', { packages: ['corechart'] });
+google.charts.setOnLoadCallback(desenharGrafico);
+
+async function desenharGrafico() {
+  const response = await swapiGet('vehicles/');
+  const vehiclesArray = response.data.results;
+  console.log('teste', vehiclesArray);
+
+  const dataArray = [];
+  dataArray.push(['Veículos', 'Passageiros']);
+  vehiclesArray.forEach((vehicles) => {
+    dataArray.push([vehicles.name, Number(vehicles.passengers)]);
+  });
+
+  var data = google.visualization.arrayToDataTable(dataArray);
+
+  var options = {
+    title: 'Maiores veículos',
+    legend: 'none',
+  };
+
+  var chart = new google.visualization.PieChart(
+    document.getElementById('piechart'),
+  );
+
+  chart.draw(data, options);
+}
 
 function preencherContadores() {
   Promise.all([
@@ -20,7 +49,20 @@ function preencherContadores() {
     navesContador.innerHTML = results[3].data.count;
   });
 }
+async function preencherTabela() {
+  const response = await swapiGet('films/');
 
+  const tableData = response.data.results;
+  console.log('aqui', tableData);
+  tableData.forEach((film) => {
+    $('#filmsTable').append(`<tr>
+    <td>${film.title}</td>
+    <td>${moment(film.release_date).format('L')}</td>
+    <td>${film.director}</td>
+    <td>${film.episode_id}</td>
+    </tr>`);
+  });
+}
 function swapiGet(param) {
   return axios.get(`https://swapi.dev/api/${param}`);
 }
